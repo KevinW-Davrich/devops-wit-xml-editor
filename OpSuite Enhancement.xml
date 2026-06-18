@@ -1,0 +1,565 @@
+<?xml version="1.0" encoding="utf-8"?>
+<witd:WITD xmlns:witd="http://schemas.microsoft.com/VisualStudio/2008/workitemtracking/typedef" application="Work item type editor" version="1.0">
+  <WORKITEMTYPE name="OpSuite Enhancement">
+    <DESCRIPTION>Includes information about a particular work item</DESCRIPTION>
+    <GLOBALLISTS>
+      <GLOBALLIST name="Environment (Scrum) - Franchise Module Scrum">
+        <LISTITEM value="&lt;None&gt;"/>
+        <LISTITEM value="Armstrong"/>
+        <LISTITEM value="Girl Scouts"/>
+        <LISTITEM value="Good Feet"/>
+        <LISTITEM value="It'Sugar"/>
+        <LISTITEM value="Spice &amp; Tea Exchange"/>
+        <LISTITEM value="Teagschwendner"/>
+        <LISTITEM value="Test"/>
+      </GLOBALLIST>
+      <GLOBALLIST name="Team (Scrum) - Franchise Module Scrum">
+        <LISTITEM value="&lt;None&gt;"/>
+        <LISTITEM value="UK"/>
+        <LISTITEM value="USA"/>
+      </GLOBALLIST>
+    </GLOBALLISTS>
+    <FIELDS>
+      <FIELD name="Iteration Path" refname="System.IterationPath" type="TreePath" reportable="dimension">
+        <HELPTEXT>Choose the Sprint in which this task will be worked on</HELPTEXT>
+      </FIELD>
+      <FIELD name="IterationID" refname="System.IterationId" type="Integer"/>
+      <FIELD name="ExternalLinkCount" refname="System.ExternalLinkCount" type="Integer"/>
+      <FIELD name="Team Project" refname="System.TeamProject" type="String" reportable="dimension"/>
+      <FIELD name="Remote Link Count" refname="System.RemoteLinkCount" type="Integer"/>
+      <FIELD name="Comment Count" refname="System.CommentCount" type="Integer"/>
+      <FIELD name="HyperLinkCount" refname="System.HyperLinkCount" type="Integer"/>
+      <FIELD name="AttachedFileCount" refname="System.AttachedFileCount" type="Integer"/>
+      <FIELD name="Node Name" refname="System.NodeName" type="String"/>
+      <FIELD name="Area Path" refname="System.AreaPath" type="TreePath" reportable="dimension">
+        <HELPTEXT>Feature Scope can be used to categorise or theme a Sprint Task and can be different to the Product Backlog Feature Path</HELPTEXT>
+      </FIELD>
+      <FIELD name="Revised Date" refname="System.RevisedDate" type="DateTime" reportable="detail"/>
+      <FIELD name="Changed Date" refname="System.ChangedDate" type="DateTime" reportable="dimension"/>
+      <FIELD name="ID" refname="System.Id" type="Integer" reportable="dimension">
+        <HELPTEXT>Human readable, auto-populated numeric Id</HELPTEXT>
+      </FIELD>
+      <FIELD name="AreaID" refname="System.AreaId" type="Integer"/>
+      <FIELD name="Authorized As" refname="System.AuthorizedAs" type="String" syncnamechanges="true"/>
+      <FIELD name="Title" refname="System.Title" type="String" reportable="dimension">
+        <HELPTEXT>Name or short description that clearly identifies the task</HELPTEXT>
+        <REQUIRED/>
+        <CANNOTLOSEVALUE/>
+      </FIELD>
+      <FIELD name="State" refname="System.State" type="String" reportable="dimension">
+        <HELPTEXT>This is the status of the current status of the task as selected by a team member</HELPTEXT>
+      </FIELD>
+      <FIELD name="Authorized Date" refname="System.AuthorizedDate" type="DateTime"/>
+      <FIELD name="Watermark" refname="System.Watermark" type="Integer"/>
+      <FIELD name="Rev" refname="System.Rev" type="Integer" reportable="dimension"/>
+      <FIELD name="Changed By" refname="System.ChangedBy" type="String" syncnamechanges="true" reportable="dimension"/>
+      <FIELD name="Reason" refname="System.Reason" type="String" reportable="dimension"/>
+      <FIELD name="Assigned To" refname="System.AssignedTo" type="String" syncnamechanges="true" reportable="dimension">
+        <HELPTEXT>The team member currently assigned to act on the task</HELPTEXT>
+        <ALLOWEDVALUES expanditems="true">
+          <LISTITEM value="[project]\Contributors"/>
+          <LISTITEM value="[project]\Project Administrators"/>
+        </ALLOWEDVALUES>
+      </FIELD>
+      <FIELD name="Work Item Type" refname="System.WorkItemType" type="String" reportable="dimension"/>
+      <FIELD name="Created Date" refname="System.CreatedDate" type="DateTime" reportable="dimension"/>
+      <FIELD name="Created By" refname="System.CreatedBy" type="String" syncnamechanges="true" reportable="dimension"/>
+      <FIELD name="Description" refname="System.Description" type="HTML">
+        <HELPTEXT>Detailed description of the task</HELPTEXT>
+      </FIELD>
+      <FIELD name="History" refname="System.History" type="History">
+        <HELPTEXT>Discussion thread and other historical information including fields that have changed, by whom and when.</HELPTEXT>
+      </FIELD>
+      <FIELD name="RelatedLinkCount" refname="System.RelatedLinkCount" type="Integer"/>
+      <FIELD name="Tags" refname="System.Tags" type="PlainText"/>
+      <FIELD name="Board Column" refname="System.BoardColumn" type="String" reportable="dimension"/>
+      <FIELD name="Board Column Done" refname="System.BoardColumnDone" type="Boolean" reportable="dimension"/>
+      <FIELD name="Board Lane" refname="System.BoardLane" type="String" reportable="dimension"/>
+      <FIELD name="HelpStatus" refname="OpSuite.HelpStatus" type="String" reportable="dimension">
+        <HELPTEXT>Does this change impact the help content?</HELPTEXT>
+        <WHEN field="System.State" value="In Staging">
+          <REQUIRED/>
+        </WHEN>
+        <ALLOWEDVALUES expanditems="true">
+          <LISTITEM value="Done"/>
+          <LISTITEM value="In Progress"/>
+          <LISTITEM value="Not required"/>
+          <LISTITEM value="Required"/>
+        </ALLOWEDVALUES>
+      </FIELD>
+      <FIELD name="Requires Schema Update" refname="OpSuite.RequiresSchemaUpdate" type="String" reportable="dimension">
+        <HELPTEXT>Does the work item require an update at store level?</HELPTEXT>
+        <ALLOWEDVALUES expanditems="true">
+          <LISTITEM value="No"/>
+          <LISTITEM value="Yes"/>
+        </ALLOWEDVALUES>
+      </FIELD>
+      <FIELD name="Requires Update At Store" refname="OpSuite.RequiresStoreUpdate" type="String" reportable="dimension">
+        <HELPTEXT>Does the work item require an update at store level?</HELPTEXT>
+        <ALLOWEDVALUES expanditems="true">
+          <LISTITEM value="No"/>
+          <LISTITEM value="Yes"/>
+        </ALLOWEDVALUES>
+      </FIELD>
+      <FIELD name="Requires Data Update" refname="OpSuite.RequiresDataUpdate" type="String" reportable="dimension">
+        <HELPTEXT>Does the work item require a script to update or insert data?</HELPTEXT>
+        <ALLOWEDVALUES expanditems="true">
+          <LISTITEM value="No"/>
+          <LISTITEM value="Yes"/>
+        </ALLOWEDVALUES>
+      </FIELD>
+      <FIELD name="Requires SSIS Package Update" refname="OpSuite.RequiresSSISPackageUpdate" type="String" reportable="dimension">
+        <HELPTEXT>Does the change contains a SSIS Package Update?</HELPTEXT>
+        <ALLOWEDVALUES expanditems="true">
+          <LISTITEM value="No"/>
+          <LISTITEM value="Yes"/>
+        </ALLOWEDVALUES>
+      </FIELD>
+      <FIELD name="Requires SQL Report Update" refname="OpSuite.RequiresSQLReportUpdate" type="String" reportable="dimension">
+        <HELPTEXT>Does the change contain a Requires SQL Report Update?</HELPTEXT>
+        <ALLOWEDVALUES expanditems="true">
+          <LISTITEM value="No"/>
+          <LISTITEM value="Yes"/>
+        </ALLOWEDVALUES>
+      </FIELD>
+      <FIELD name="History Date (Scrum v3)" refname="Scrum.v3.HistoryDate" type="DateTime" reportable="dimension">
+        <COPY from="clock"/>
+        <DEFAULT from="clock"/>
+      </FIELD>
+      <FIELD name="Work Remaining (Scrum v3)" refname="Scrum.v3.WorkRemaining" type="Double" reportable="measure" formula="sum">
+        <HELPTEXT>Number of hours remaining on this task or feature updated by team members on at least a daily basis</HELPTEXT>
+        <WHENCHANGED field="Scrum.v3.EstimatedEffort">
+          <REQUIRED/>
+        </WHENCHANGED>
+        <SUGGESTEDVALUES expanditems="true">
+          <LISTITEM value="1"/>
+          <LISTITEM value="2"/>
+          <LISTITEM value="3"/>
+          <LISTITEM value="4"/>
+          <LISTITEM value="5"/>
+          <LISTITEM value="6"/>
+          <LISTITEM value="7"/>
+          <LISTITEM value="8"/>
+        </SUGGESTEDVALUES>
+      </FIELD>
+      <FIELD name="Estimated Effort (Scrum v3)" refname="Scrum.v3.EstimatedEffort" type="Double" reportable="measure" formula="sum">
+        <HELPTEXT>The estimated effort needed to complete the feature in hours</HELPTEXT>
+        <SUGGESTEDVALUES expanditems="true">
+          <LISTITEM value="1"/>
+          <LISTITEM value="2"/>
+          <LISTITEM value="3"/>
+          <LISTITEM value="4"/>
+          <LISTITEM value="5"/>
+          <LISTITEM value="6"/>
+          <LISTITEM value="7"/>
+          <LISTITEM value="8"/>
+        </SUGGESTEDVALUES>
+      </FIELD>
+      <FIELD name="Task Priority (Scrum v3)" refname="Scrum.v3.TaskPriority" type="Integer" reportable="dimension">
+        <HELPTEXT>Order in which this task will be worked on within the Sprint</HELPTEXT>
+        <SUGGESTEDVALUES expanditems="true">
+          <LISTITEM value="1"/>
+          <LISTITEM value="2"/>
+          <LISTITEM value="3"/>
+          <LISTITEM value="4"/>
+          <LISTITEM value="5"/>
+          <LISTITEM value="6"/>
+          <LISTITEM value="7"/>
+          <LISTITEM value="8"/>
+        </SUGGESTEDVALUES>
+      </FIELD>
+      <FIELD name="Customers" refname="OpSuite.CustomerNames" type="String" reportable="dimension">
+        <HELPTEXT>comma seperated list of names</HELPTEXT>
+      </FIELD>
+      <FIELD name="Date Ordered" refname="OpSuite.DateOrdered" type="DateTime" reportable="dimension">
+        <HELPTEXT>The date the feature was ordered</HELPTEXT>
+      </FIELD>
+      <FIELD name="Installation Date" refname="OpSuite.InstallationDate" type="DateTime" reportable="dimension">
+        <HELPTEXT>The date of installation</HELPTEXT>
+      </FIELD>
+      <FIELD name="Category" refname="OpSuite.Category" type="String" reportable="dimension">
+        <HELPTEXT>What category of enhancement is this?</HELPTEXT>
+        <ALLOWEDVALUES expanditems="true">
+          <LISTITEM value="Customer Order"/>
+          <LISTITEM value="Nice To Have"/>
+          <LISTITEM value="Resolves Live Issue"/>
+        </ALLOWEDVALUES>
+      </FIELD>
+      <FIELD name="Jira Issue Key" refname="Jira.IssueKey" type="String" reportable="dimension"/>
+      <FIELD name="Linked To OpSuitePOS" refname="OpSuite.LinkedToOpSuitePOS" type="String" reportable="dimension">
+        <HELPTEXT>Depends On or Dependancy On an OpSuitePOS ticket</HELPTEXT>
+        <DEFAULT from="value" value="No"/>
+        <ALLOWEDVALUES expanditems="true">
+          <LISTITEM value="No"/>
+          <LISTITEM value="Yes"/>
+        </ALLOWEDVALUES>
+      </FIELD>
+      <FIELD name="Reference Number" refname="OpSuite.ReferenceNumber" type="String" reportable="dimension">
+        <HELPTEXT>A reference number from an external system</HELPTEXT>
+      </FIELD>
+      <FIELD name="Test Hours" refname="OpSuite.TestHours" type="Double" reportable="dimension">
+        <HELPTEXT>The hours it took to test</HELPTEXT>
+      </FIELD>
+      <FIELD name="Test Hours AI Saving" refname="OpSuite.TestHoursAISaving" type="Double" reportable="dimension">
+        <HELPTEXT>Estimated hours saving using AI</HELPTEXT>
+      </FIELD>
+      <FIELD name="Dev Hours" refname="OpSuite.DevHours" type="Double" reportable="dimension">
+        <HELPTEXT>Hours taken to develop</HELPTEXT>
+      </FIELD>
+      <FIELD name="Dev Hours AI Saving" refname="OpSuite.DevHoursAISaving" type="Double" reportable="dimension">
+        <HELPTEXT>Dev hours saving using AI</HELPTEXT>
+      </FIELD>
+    </FIELDS>
+    <WORKFLOW>
+      <STATES>
+        <STATE value="Closed">
+          <FIELDS>
+            <FIELD refname="Scrum.v3.WorkRemaining">
+              <COPY from="value" value="0"/>
+              <ALLOWEDVALUES expanditems="true">
+                <LISTITEM value="0"/>
+              </ALLOWEDVALUES>
+            </FIELD>
+          </FIELDS>
+        </STATE>
+        <STATE value="Deleted"/>
+        <STATE value="Failed In Alpha"/>
+        <STATE value="Failed Testing"/>
+        <STATE value="In Alpha"/>
+        <STATE value="In Progress"/>
+        <STATE value="In Staging"/>
+        <STATE value="Not Started"/>
+        <STATE value="Passed Testing"/>
+        <STATE value="Ready For Test"/>
+        <STATE value="Verified In Alpha"/>
+      </STATES>
+      <TRANSITIONS>
+        <TRANSITION from="" to="Not Started">
+          <REASONS>
+            <DEFAULTREASON value="New"/>
+          </REASONS>
+          <FIELDS>
+            <FIELD refname="System.AssignedTo">
+              <DEFAULT from="currentuser"/>
+            </FIELD>
+          </FIELDS>
+        </TRANSITION>
+        <TRANSITION from="Not Started" to="In Progress">
+          <REASONS>
+            <DEFAULTREASON value="Work has commenced"/>
+          </REASONS>
+        </TRANSITION>
+        <TRANSITION from="Not Started" to="Deleted">
+          <REASONS>
+            <DEFAULTREASON value="Item marked as deleted"/>
+          </REASONS>
+        </TRANSITION>
+        <TRANSITION from="In Progress" to="Deleted">
+          <REASONS>
+            <DEFAULTREASON value="Item marked as deleted"/>
+          </REASONS>
+        </TRANSITION>
+        <TRANSITION from="Deleted" to="Not Started">
+          <REASONS>
+            <DEFAULTREASON value="Deleted item restored"/>
+          </REASONS>
+        </TRANSITION>
+        <TRANSITION from="Deleted" to="In Progress">
+          <REASONS>
+            <DEFAULTREASON value="Deleted item restored"/>
+          </REASONS>
+        </TRANSITION>
+        <TRANSITION from="In Progress" to="Ready For Test">
+          <REASONS>
+            <DEFAULTREASON value="Work is ready for testing"/>
+          </REASONS>
+        </TRANSITION>
+        <TRANSITION from="Ready For Test" to="Failed Testing">
+          <REASONS>
+            <DEFAULTREASON value="The enhancement has failed testing"/>
+          </REASONS>
+        </TRANSITION>
+        <TRANSITION from="Failed Testing" to="In Progress">
+          <REASONS>
+            <DEFAULTREASON value="The development of the enhancement has started"/>
+          </REASONS>
+        </TRANSITION>
+        <TRANSITION from="Failed Testing" to="Deleted">
+          <REASONS>
+            <DEFAULTREASON value="-The enhancement is no longer valid"/>
+          </REASONS>
+        </TRANSITION>
+        <TRANSITION from="Ready For Test" to="Passed Testing">
+          <REASONS>
+            <DEFAULTREASON value="The enhancement has passed testing"/>
+          </REASONS>
+        </TRANSITION>
+        <TRANSITION from="Passed Testing" to="In Staging">
+          <REASONS>
+            <DEFAULTREASON value="The enhancement is ready for release"/>
+          </REASONS>
+        </TRANSITION>
+        <TRANSITION from="Closed" to="Deleted">
+          <REASONS>
+            <DEFAULTREASON value="Item marked as deleted"/>
+          </REASONS>
+        </TRANSITION>
+        <TRANSITION from="In Progress" to="Not Started">
+          <REASONS>
+            <DEFAULTREASON value="Actually, I'll do this another time"/>
+          </REASONS>
+        </TRANSITION>
+        <TRANSITION from="In Progress" to="In Staging">
+          <REASONS>
+            <DEFAULTREASON value="-No testing required. Get this straight out to release."/>
+          </REASONS>
+        </TRANSITION>
+        <TRANSITION from="In Staging" to="In Progress">
+          <REASONS>
+            <DEFAULTREASON value="-oops! It's still needs some work doing.  Reverse! Reverse!"/>
+          </REASONS>
+        </TRANSITION>
+        <TRANSITION from="Ready For Test" to="In Progress">
+          <REASONS>
+            <DEFAULTREASON value="-More work needs doing"/>
+          </REASONS>
+        </TRANSITION>
+        <TRANSITION from="In Staging" to="In Alpha">
+          <REASONS>
+            <DEFAULTREASON value="-It's in a release ready for Alpha testing"/>
+          </REASONS>
+        </TRANSITION>
+        <TRANSITION from="Verified In Alpha" to="Closed">
+          <REASONS>
+            <DEFAULTREASON value="Work has been released"/>
+          </REASONS>
+        </TRANSITION>
+        <TRANSITION from="In Alpha" to="Failed In Alpha">
+          <REASONS>
+            <DEFAULTREASON value="-it failed in Alpha"/>
+          </REASONS>
+        </TRANSITION>
+        <TRANSITION from="In Alpha" to="Verified In Alpha">
+          <REASONS>
+            <DEFAULTREASON value="-it passed testing in Alpha"/>
+          </REASONS>
+        </TRANSITION>
+        <TRANSITION from="Failed In Alpha" to="In Alpha">
+          <REASONS>
+            <DEFAULTREASON value="-a correction has been made and it's ready to be verified again"/>
+          </REASONS>
+        </TRANSITION>
+      </TRANSITIONS>
+    </WORKFLOW>
+    <FORM>
+      <Layout>
+        <Group>
+          <Column PercentWidth="100">
+            <Control FieldName="System.Title" Type="FieldControl" Label="Title" LabelPosition="Left"/>
+          </Column>
+        </Group>
+        <Group>
+          <Column PercentWidth="50">
+            <Group Label="Classification and Priority">
+              <Column PercentWidth="100">
+                <Group>
+                  <Column PercentWidth="100">
+                    <Control FieldName="Scrum.v3.TaskPriority" Type="FieldControl" Label="Task Priority" LabelPosition="Left" Margin="(54,0,0,0)"/>
+                  </Column>
+                  <Column PercentWidth="100">
+                    <Control FieldName="Scrum.v3.EstimatedEffort" Type="FieldControl" Label="Estimated Effort (Days)" LabelPosition="Left" Margin="(2,0,0,0)"/>
+                  </Column>
+                </Group>
+                <Control FieldName="System.AreaPath" Type="WorkItemClassificationControl" Label="Area" LabelPosition="Left" Margin="(26,0,0,0)"/>
+                <Control FieldName="OpSuite.CustomerNames" Type="FieldControl" Label="Customer Names" LabelPosition="Left" Margin="(26,0,0,0)"/>
+                <Control FieldName="OpSuite.Category" Type="FieldControl" Label="Category" LabelPosition="Left" Margin="(26,0,0,0)"/>
+                <Group>
+                  <Column PercentWidth="100"/>
+                </Group>
+                <Control FieldName="OpSuite.LinkedToOpSuitePOS" Type="FieldControl" Label="Linked To OpSuitePOS" LabelPosition="Left" Margin="(26,0,0,0)"/>
+                <Control FieldName="OpSuite.DateOrdered" Type="DateTimeControl" Label="Date Ordered:" LabelPosition="Left" Margin="(26,0,0,0)"/>
+                <Control FieldName="OpSuite.ReferenceNumber" Type="FieldControl" Label="Reference:" LabelPosition="Left" Margin="(26,0,0,0)"/>
+              </Column>
+            </Group>
+          </Column>
+          <Column PercentWidth="50">
+            <Group Label="Status">
+              <Column PercentWidth="100">
+                <Control FieldName="System.AssignedTo" Type="FieldControl" Label="Assigned To" LabelPosition="Left"/>
+                <Control FieldName="System.State" Type="FieldControl" Label="Status" LabelPosition="Left"/>
+                <Control FieldName="Scrum.v3.WorkRemaining" Type="FieldControl" Label="Work Remaining (hours)" LabelPosition="Left"/>
+                <Control FieldName="OpSuite.HelpStatus" Type="FieldControl" Label="Help Status:" LabelPosition="Left"/>
+                <Control FieldName="System.CreatedDate" Type="FieldControl" Label="Date Created:" LabelPosition="Left" ReadOnly="True"/>
+                <Control FieldName="OpSuite.InstallationDate" Type="DateTimeControl" Label="Installation Date:" LabelPosition="Left"/>
+              </Column>
+            </Group>
+          </Column>
+          <Column PercentWidth="50">
+            <Group Label="Deployment Planning">
+              <Column PercentWidth="100">
+                <Control FieldName="OpSuite.RequiresSchemaUpdate" Type="FieldControl" Label="Schema\Proc Update" LabelPosition="Left"/>
+                <Control FieldName="OpSuite.RequiresDataUpdate" Type="FieldControl" Label="Data Update" LabelPosition="Left"/>
+                <Control FieldName="OpSuite.RequiresSQLReportUpdate" Type="FieldControl" Label="SQL Report Update" LabelPosition="Left"/>
+                <Control FieldName="OpSuite.RequiresStoreUpdate" Type="FieldControl" Label="Store Update" LabelPosition="Left"/>
+                <Control FieldName="System.IterationPath" Type="WorkItemClassificationControl" Label="Release" LabelPosition="Left"/>
+              </Column>
+            </Group>
+          </Column>
+        </Group>
+        <TabGroup>
+          <Tab Label="Description ">
+            <Control FieldName="System.Description" Type="HtmlFieldControl" Label="Description:" LabelPosition="Top" Dock="Top" MinimumSize="(100,100)"/>
+          </Tab>
+          <Tab Label="History">
+            <Control FieldName="System.History" Type="WorkItemLogControl" Label="History:" LabelPosition="Top" Dock="Fill"/>
+          </Tab>
+          <Tab Label="Acceptance Tests">
+            <Control Type="LinksControl" Label="The acceptance tests that test this work item:" LabelPosition="Top" Name="TestsLink">
+              <LinksControlOptions>
+                <LinkColumns>
+                  <LinkColumn RefName="System.Id"/>
+                  <LinkColumn LinkAttribute="System.Links.LinkType"/>
+                  <LinkColumn RefName="System.WorkItemType"/>
+                  <LinkColumn RefName="System.Title"/>
+                  <LinkColumn RefName="System.State"/>
+                  <LinkColumn LinkAttribute="System.Links.Comment"/>
+                </LinkColumns>
+                <WorkItemLinkFilters FilterType="include">
+                  <Filter LinkType="Microsoft.VSTS.Common.TestedBy" FilterOn="forwardname"/>
+                </WorkItemLinkFilters>
+                <ExternalLinkFilters FilterType="excludeAll"/>
+                <WorkItemTypeFilters FilterType="include">
+                  <Filter WorkItemType="Acceptance Test"/>
+                </WorkItemTypeFilters>
+              </LinksControlOptions>
+            </Control>
+          </Tab>
+          <Tab Label="All Links">
+            <Control Type="LinksControl" LabelPosition="Top" Name="OtherLinks">
+              <LinksControlOptions>
+                <LinkColumns>
+                  <LinkColumn RefName="System.ID"/>
+                  <LinkColumn RefName="System.Links.LinkType"/>
+                  <LinkColumn RefName="System.WorkItemType"/>
+                  <LinkColumn RefName="System.Title"/>
+                  <LinkColumn RefName="System.AssignedTo"/>
+                  <LinkColumn RefName="System.State"/>
+                  <LinkColumn LinkAttribute="System.Links.Comment"/>
+                </LinkColumns>
+                <WorkItemLinkFilters FilterType="includeAll"/>
+                <ExternalLinkFilters FilterType="includeAll"/>
+                <WorkItemTypeFilters FilterType="includeAll"/>
+              </LinksControlOptions>
+            </Control>
+          </Tab>
+          <Tab Label="File Attachments">
+            <Control Type="AttachmentsControl" LabelPosition="Top"/>
+          </Tab>
+          <Tab Label="JIRA">
+            <Control FieldName="Jira.IssueKey" Type="FieldControl" Label="Issue Key:" LabelPosition="Left" ReadOnly="True"/>
+          </Tab>
+        </TabGroup>
+      </Layout>
+      <WebLayout>
+        <SystemControls>
+          <Control Label="Title" Type="FieldControl" FieldName="System.Title"/>
+          <Control Label="Area" Type="WorkItemClassificationControl" FieldName="System.AreaPath"/>
+          <Control Label="Assigned To" Type="FieldControl" FieldName="System.AssignedTo"/>
+          <Control Label="Status" Type="FieldControl" FieldName="System.State"/>
+          <Control Label="Release" Type="WorkItemClassificationControl" FieldName="System.IterationPath"/>
+          <Control Label="History:" Type="WorkItemLogControl" FieldName="System.History"/>
+          <Control Label="Links" Type="LinksControl" Name="Links"/>
+          <Control Label="Attachments" Type="AttachmentsControl" Name="Attachments"/>
+          <Control Label="Reason" Type="FieldControl" FieldName="System.Reason"/>
+        </SystemControls>
+        <Page Label="Description " LayoutMode="FirstColumnWide">
+          <Section>
+            <Group Label="Description:">
+              <Control Label="Description:" Type="HtmlFieldControl" FieldName="System.Description"/>
+            </Group>
+          </Section>
+          <Section>
+            <Group Label="Classification and Priority">
+              <Control Label="Customer Names" Type="FieldControl" FieldName="OpSuite.CustomerNames"/>
+              <Control Label="Category" Type="FieldControl" FieldName="OpSuite.Category"/>
+              <Control Label="Linked To OpSuitePOS" Type="FieldControl" FieldName="OpSuite.LinkedToOpSuitePOS"/>
+              <Control Label="Date Ordered:" Type="DateTimeControl" FieldName="OpSuite.DateOrdered"/>
+              <Control Label="Reference:" Type="FieldControl" FieldName="OpSuite.ReferenceNumber"/>
+              <Control Label="Task Priority" Type="FieldControl" FieldName="Scrum.v3.TaskPriority"/>
+              <Control Label="Estimated Effort (Days)" Type="FieldControl" FieldName="Scrum.v3.EstimatedEffort"/>
+            </Group>
+            <Group Label="Deployment Planning">
+              <Control Label="Schema\Proc Update" Type="FieldControl" FieldName="OpSuite.RequiresSchemaUpdate"/>
+              <Control Label="Data Update" Type="FieldControl" FieldName="OpSuite.RequiresDataUpdate"/>
+              <Control Label="SQL Report Update" Type="FieldControl" FieldName="OpSuite.RequiresSQLReportUpdate"/>
+              <Control Label="Store Update" Type="FieldControl" FieldName="OpSuite.RequiresStoreUpdate"/>
+            </Group>
+          </Section>
+          <Section>
+            <Group Label="Development">
+              <Control Type="LinksControl" Name="Development">
+                <LinksControlOptions ViewMode="List" ZeroDataExperience="Development" ShowCallToAction="true">
+                  <ListViewOptions GroupLinks="false">
+                  </ListViewOptions>
+                  <LinkFilters>
+                    <ExternalLinkFilter Type="Build"/>
+                    <ExternalLinkFilter Type="Integrated in build"/>
+                    <ExternalLinkFilter Type="Pull Request"/>
+                    <ExternalLinkFilter Type="Branch"/>
+                    <ExternalLinkFilter Type="Fixed in Commit"/>
+                    <ExternalLinkFilter Type="Fixed in Changeset"/>
+                    <ExternalLinkFilter Type="Source Code File"/>
+                    <ExternalLinkFilter Type="Found in build"/>
+                    <ExternalLinkFilter Type="GitHub Pull Request"/>
+                    <ExternalLinkFilter Type="GitHub Commit"/>
+                  </LinkFilters>
+                </LinksControlOptions>
+              </Control>
+            </Group>
+            <Group Label="Related Work">
+              <Control Type="LinksControl" Name="Related Work">
+                <LinksControlOptions ViewMode="List">
+                  <LinkFilters>
+                    <WorkItemLinkFilter Type="System.LinkTypes.Duplicate-Reverse"/>
+                    <WorkItemLinkFilter Type="System.LinkTypes.Hierarchy-Reverse"/>
+                    <WorkItemLinkFilter Type="Microsoft.VSTS.Common.TestedBy-Forward"/>
+                    <WorkItemLinkFilter Type="Microsoft.VSTS.Common.TestedBy-Reverse"/>
+                    <WorkItemLinkFilter Type="System.LinkTypes.Hierarchy-Forward"/>
+                    <WorkItemLinkFilter Type="System.LinkTypes.Duplicate-Forward"/>
+                    <WorkItemLinkFilter Type="System.LinkTypes.Dependency"/>
+                    <WorkItemLinkFilter Type="System.LinkTypes.Related"/>
+                    <ExternalLinkFilter Type="GitHub Issue"/>
+                  </LinkFilters>
+                  <Columns>
+                    <Column Name="System.State"/>
+                    <Column Name="System.ChangedDate"/>
+                    <Column Name="System.Links.Comment"/>
+                  </Columns>
+                </LinksControlOptions>
+              </Control>
+            </Group>
+            <Group Label="Status">
+              <Control Label="Work Remaining (hours)" Type="FieldControl" FieldName="Scrum.v3.WorkRemaining"/>
+              <Control Label="Help Status:" Type="FieldControl" FieldName="OpSuite.HelpStatus"/>
+              <Control Label="Date Created:" Type="FieldControl" FieldName="System.CreatedDate" ReadOnly="True"/>
+              <Control Label="Installation Date:" Type="DateTimeControl" FieldName="OpSuite.InstallationDate"/>
+            </Group>
+            <Group Label="AI Metrics">
+              <Control Label="Dev Hours" Type="FieldControl" FieldName="OpSuite.DevHours"/>
+              <Control Label="Dev Hours AI Saving" Type="FieldControl" FieldName="OpSuite.DevHoursAISaving"/>
+              <Control Label="Test Hours" Type="FieldControl" FieldName="OpSuite.TestHours"/>
+              <Control Label="Test Hours AI Saving" Type="FieldControl" FieldName="OpSuite.TestHoursAISaving"/>
+            </Group>
+          </Section>
+        </Page>
+        <Page Label="JIRA" LayoutMode="FirstColumnWide">
+          <Section>
+            <Group Label="JIRA">
+              <Control Label="Issue Key:" Type="FieldControl" FieldName="Jira.IssueKey" ReadOnly="True"/>
+            </Group>
+          </Section>
+        </Page>
+      </WebLayout>
+    </FORM>
+  </WORKITEMTYPE>
+</witd:WITD>

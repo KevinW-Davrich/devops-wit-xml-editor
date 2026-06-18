@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevOps WIT XML Editor</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #f0f2f5; }
+    .header-bar { background: #0d6efd; color: #fff; padding: 0.6rem 1rem; }
+    .wit-name { font-size: 1rem; font-weight: 600; }
+    #main-content { max-width: 1400px; margin: 0 auto; }
+    .section-card { border: 1px solid #dee2e6; border-radius: 6px; background: #fff; min-height: 80px; padding: 0.5rem; }
+    .group-card { border: 1px solid #e2e8f0; border-radius: 4px; background: #f8fafc; margin-bottom: 0.4rem; }
+    .group-header { display: flex; align-items: center; padding: 4px 8px; border-bottom: 1px solid #e2e8f0; }
+    .control-row { display: flex; align-items: center; padding: 3px 8px; border-bottom: 1px solid #f1f5f9; font-size: 0.82rem; }
+    .control-row:last-child { border-bottom: none; }
+    .control-info { flex: 1; min-width: 0; }
+    .control-actions { display: flex; gap: 2px; flex-shrink: 0; }
+    .btn-icon { padding: 1px 5px; font-size: 0.75rem; line-height: 1.4; }
+    #raw-xml { font-family: 'Cascadia Code', 'Consolas', monospace; font-size: 0.78rem; height: 520px; resize: vertical; }
+    .no-file-msg { text-align: center; padding: 5rem 2rem; color: #6c757d; }
+    .field-kind-system { opacity: 0.7; }
+    code { font-size: 0.8em; color: #0d6efd; }
+    .page-actions { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; margin-bottom: 0.75rem; }
+    .empty-section { border: 2px dashed #dee2e6; border-radius: 6px; padding: 1rem; text-align: center; color: #adb5bd; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header-bar d-flex align-items-center gap-3">
+  <button class="btn btn-sm btn-light fw-semibold" onclick="document.getElementById('file-input').click()">&#128194; Load XML</button>
+  <input type="file" id="file-input" accept=".xml" class="d-none">
+  <span class="wit-name" id="wit-name">No file loaded</span>
+  <span id="modified-badge" class="badge bg-warning text-dark d-none">&#9679; Modified</span>
+  <button class="btn btn-sm btn-success ms-auto" id="btn-download" disabled onclick="downloadXml()">&#8659; Download XML</button>
+</div>
+
+<!-- NO FILE STATE -->
+<div id="no-file-msg" class="no-file-msg">
+  <h4>DevOps 2019 WIT XML Editor</h4>
+  <p class="mt-2">Click <strong>Load XML</strong> to open a Work Item Type XML file.</p>
+  <p class="small text-muted">Edits the <code>FIELDS</code> and <code>WebLayout</code> nodes. All other nodes are preserved unchanged.</p>
+</div>
+
+<!-- MAIN CONTENT -->
+<div id="main-content" class="d-none container-fluid py-3">
+
+  <ul class="nav nav-tabs mb-3" id="main-tabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-fields" role="tab">Fields</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-weblayout" role="tab">WebLayout</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-raw-btn" data-bs-toggle="tab" data-bs-target="#tab-raw" role="tab">Raw XML</button>
+    </li>
+  </ul>
+
+  <div class="tab-content">
+
+    <!-- FIELDS TAB -->
+    <div class="tab-pane fade show active" id="tab-fields" role="tabpanel">
+      <div class="d-flex align-items-center mb-3 gap-3">
+        <button class="btn btn-primary btn-sm" onclick="openFieldModal(null)">+ Add Field</button>
+        <div class="form-check form-switch mb-0">
+          <input class="form-check-input" type="checkbox" id="show-system" checked onchange="renderFields()">
+          <label class="form-check-label small" for="show-system">Show system fields</label>
+        </div>
+        <span id="field-count" class="text-muted small ms-auto"></span>
+      </div>
+      <div class="table-responsive rounded shadow-sm">
+        <table class="table table-sm table-hover table-bordered mb-0 bg-white">
+          <thead class="table-light">
+            <tr>
+              <th>Name</th>
+              <th>RefName</th>
+              <th>Type</th>
+              <th>Reportable</th>
+              <th>Kind</th>
+              <th style="width:110px">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="fields-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- WEBLAYOUT TAB -->
+    <div class="tab-pane fade" id="tab-weblayout" role="tabpanel">
+      <div class="page-actions">
+        <span class="fw-semibold small me-1">Pages:</span>
+        <div id="page-buttons" class="d-flex flex-wrap gap-1"></div>
+        <button class="btn btn-outline-primary btn-sm" onclick="openPageModal(-1)">+ Add Page</button>
+      </div>
+      <div id="page-canvas"></div>
+    </div>
+
+    <!-- RAW XML TAB -->
+    <div class="tab-pane fade" id="tab-raw" role="tabpanel">
+      <div class="d-flex align-items-center mb-2 gap-2">
+        <span class="small text-muted">Read-only. Updates automatically as you edit.</span>
+        <button class="btn btn-outline-secondary btn-sm ms-auto" onclick="copyRaw()">Copy to Clipboard</button>
+      </div>
+      <textarea id="raw-xml" class="form-control font-monospace" readonly spellcheck="false"></textarea>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===================== FIELD MODAL ===================== -->
+<div class="modal fade" id="modal-field" tabindex="-1" aria-labelledby="modal-field-title">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h6 class="modal-title" id="modal-field-title">Field</h6>
+        <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label form-label-sm">Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control form-control-sm" id="f-name" placeholder="e.g. My Custom Field">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label form-label-sm">RefName <span class="text-danger">*</span></label>
+            <input type="text" class="form-control form-control-sm" id="f-refname" placeholder="e.g. OpSuite.MyField">
+            <div class="form-text" style="font-size:0.75rem">Namespace.FieldName — must contain a dot</div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label form-label-sm">Type <span class="text-danger">*</span></label>
+            <select class="form-select form-select-sm" id="f-type">
+              <option>String</option><option>Integer</option><option>Double</option>
+              <option>DateTime</option><option>Boolean</option><option>HTML</option>
+              <option>PlainText</option><option>History</option><option>TreePath</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label form-label-sm">Reportable</label>
+            <select class="form-select form-select-sm" id="f-reportable">
+              <option value="">(none)</option>
+              <option value="dimension">dimension</option>
+              <option value="detail">detail</option>
+              <option value="measure">measure</option>
+            </select>
+          </div>
+          <div class="col-md-4 d-flex align-items-end pb-1">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="f-syncnames">
+              <label class="form-check-label small" for="f-syncnames">Sync Name Changes</label>
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label form-label-sm">Help Text</label>
+            <textarea class="form-control form-control-sm" id="f-helptext" rows="2"></textarea>
+          </div>
+          <div class="col-md-6">
+            <div class="form-check mb-1">
+              <input class="form-check-input" type="checkbox" id="f-required">
+              <label class="form-check-label small" for="f-required">Required</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="f-cannotlose">
+              <label class="form-check-label small" for="f-cannotlose">Cannot Lose Value</label>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label form-label-sm">Default Value</label>
+            <select class="form-select form-select-sm mb-1" id="f-default-from" onchange="toggleDefaultVal()">
+              <option value="">(none)</option>
+              <option value="value">Fixed value</option>
+              <option value="currentuser">Current user</option>
+              <option value="clock">Clock (timestamp)</option>
+            </select>
+            <input type="text" class="form-control form-control-sm d-none" id="f-default-value" placeholder="Fixed value...">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label form-label-sm">Allowed Values <span class="text-muted" style="font-size:0.75rem">(one per line)</span></label>
+            <textarea class="form-control form-control-sm" id="f-allowedvalues" rows="4" placeholder="Done&#10;In Progress&#10;Not Required"></textarea>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label form-label-sm">Suggested Values <span class="text-muted" style="font-size:0.75rem">(one per line)</span></label>
+            <textarea class="form-control form-control-sm" id="f-suggestedvalues" rows="4" placeholder="1&#10;2&#10;3&#10;5&#10;8"></textarea>
+          </div>
+          <div class="col-12">
+            <label class="form-label form-label-sm">Required When (WHEN condition)</label>
+            <div class="input-group input-group-sm">
+              <span class="input-group-text">Field</span>
+              <input type="text" class="form-control" id="f-when-field" placeholder="e.g. System.State">
+              <span class="input-group-text">=</span>
+              <input type="text" class="form-control" id="f-when-value" placeholder="e.g. In Staging">
+              <span class="input-group-text">→ REQUIRED</span>
+            </div>
+            <div class="form-text" style="font-size:0.75rem">Leave blank for no condition.</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer py-2">
+        <span id="f-error" class="text-danger me-auto small"></span>
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="saveField()">Save Field</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== PAGE MODAL ===================== -->
+<div class="modal fade" id="modal-page" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h6 class="modal-title" id="modal-page-title">Page</h6>
+        <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="p-index">
+        <div class="mb-3">
+          <label class="form-label form-label-sm">Label <span class="text-danger">*</span></label>
+          <input type="text" class="form-control form-control-sm" id="p-label" placeholder="e.g. Details">
+        </div>
+        <div>
+          <label class="form-label form-label-sm">Layout Mode</label>
+          <select class="form-select form-select-sm" id="p-layoutmode">
+            <option value="FirstColumnWide">FirstColumnWide</option>
+            <option value="LastColumnWide">LastColumnWide</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer py-2">
+        <span id="p-error" class="text-danger me-auto small"></span>
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="savePage()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== GROUP MODAL ===================== -->
+<div class="modal fade" id="modal-group" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h6 class="modal-title" id="modal-group-title">Group</h6>
+        <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="g-page">
+        <input type="hidden" id="g-section">
+        <input type="hidden" id="g-group">
+        <div>
+          <label class="form-label form-label-sm">Label</label>
+          <input type="text" class="form-control form-control-sm" id="g-label" placeholder="e.g. Classification">
+        </div>
+      </div>
+      <div class="modal-footer py-2">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="saveGroup()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== CONTROL MODAL ===================== -->
+<div class="modal fade" id="modal-control" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h6 class="modal-title" id="modal-ctrl-title">Control</h6>
+        <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="c-page">
+        <input type="hidden" id="c-section">
+        <input type="hidden" id="c-group">
+        <input type="hidden" id="c-control">
+        <div class="mb-3">
+          <label class="form-label form-label-sm">Label</label>
+          <input type="text" class="form-control form-control-sm" id="c-label" placeholder="e.g. Customer Names">
+        </div>
+        <div class="mb-3">
+          <label class="form-label form-label-sm">Control Type</label>
+          <select class="form-select form-select-sm" id="c-type" onchange="updateCtrlVisibility()">
+            <option value="FieldControl">FieldControl</option>
+            <option value="WorkItemClassificationControl">WorkItemClassificationControl</option>
+            <option value="HtmlFieldControl">HtmlFieldControl</option>
+            <option value="WorkItemLogControl">WorkItemLogControl</option>
+            <option value="DateTimeControl">DateTimeControl</option>
+            <option value="LinksControl">LinksControl (no field)</option>
+            <option value="AttachmentsControl">AttachmentsControl (no field)</option>
+          </select>
+        </div>
+        <div id="c-fieldname-row" class="mb-3">
+          <label class="form-label form-label-sm">Field <span class="text-danger">*</span></label>
+          <select class="form-select form-select-sm" id="c-fieldname">
+            <option value="">(select a field)</option>
+          </select>
+        </div>
+        <div id="c-name-row" class="mb-3 d-none">
+          <label class="form-label form-label-sm">Control Name</label>
+          <input type="text" class="form-control form-control-sm" id="c-name" placeholder="e.g. Development">
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="c-readonly">
+          <label class="form-check-label small" for="c-readonly">Read Only</label>
+        </div>
+      </div>
+      <div class="modal-footer py-2">
+        <span id="c-error" class="text-danger me-auto small"></span>
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="saveControl()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+'use strict';
+
+// ==================== STATE ====================
+const state = {
+  xmlDoc: null,
+  fileName: 'work-item-type.xml',
+  currentPageIndex: 0,
+  _editingRefname: null
+};
+
+// ==================== HELPERS ====================
+
+function esc(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function markModified() {
+  document.getElementById('modified-badge').classList.remove('d-none');
+}
+
+function getModal(id) {
+  return bootstrap.Modal.getOrCreateInstance(document.getElementById(id));
+}
+
+function hideModal(id) {
+  bootstrap.Modal.getInstance(document.getElementById(id))?.hide();
+}
+
+// ==================== XML PRETTY PRINTER ====================
+
+function prettyPrint(xml) {
+  const IND = '  ';
+  xml = xml.replace(/>\s+</g, '><');
+  const tokens = xml.match(/<[^>]+>|[^<]+/g) || [];
+  let out = '', pad = 0, i = 0;
+
+  while (i < tokens.length) {
+    const t = tokens[i];
+    if (t.startsWith('<?')) {
+      out += t + '\n'; i++; continue;
+    }
+    if (t.startsWith('</')) {
+      pad = Math.max(0, pad - 1);
+      out += IND.repeat(pad) + t + '\n'; i++; continue;
+    }
+    if (t.startsWith('<') && t.endsWith('/>')) {
+      out += IND.repeat(pad) + t + '\n'; i++; continue;
+    }
+    if (t.startsWith('<')) {
+      // Inline check: <tag>text</tag>
+      if (i + 2 < tokens.length && !tokens[i+1].startsWith('<') && tokens[i+2].startsWith('</')) {
+        out += IND.repeat(pad) + t + tokens[i+1] + tokens[i+2] + '\n';
+        i += 3; continue;
+      }
+      out += IND.repeat(pad) + t + '\n'; pad++; i++; continue;
+    }
+    const txt = t.trim();
+    if (txt) out += IND.repeat(pad) + txt + '\n';
+    i++;
+  }
+  return out.trim();
+}
+
+function getXmlString() {
+  const s = new XMLSerializer();
+  let xml = s.serializeToString(state.xmlDoc);
+  if (!xml.startsWith('<?xml')) xml = '<?xml version="1.0" encoding="utf-8"?>\n' + xml;
+  return prettyPrint(xml);
+}
+
+// ==================== LOAD / DOWNLOAD ====================
+
+document.getElementById('file-input').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const doc = new DOMParser().parseFromString(ev.target.result, 'application/xml');
+    if (doc.querySelector('parsererror')) {
+      alert('XML parse error. Please check the file is valid XML.'); return;
+    }
+    state.xmlDoc = doc;
+    state.fileName = file.name;
+    state.currentPageIndex = 0;
+    onLoaded();
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+function onLoaded() {
+  const wit = state.xmlDoc.querySelector('WORKITEMTYPE');
+  document.getElementById('wit-name').textContent = wit ? wit.getAttribute('name') : '(unknown)';
+  document.getElementById('btn-download').disabled = false;
+  document.getElementById('modified-badge').classList.add('d-none');
+  document.getElementById('no-file-msg').classList.add('d-none');
+  document.getElementById('main-content').classList.remove('d-none');
+  renderAll();
+}
+
+function downloadXml() {
+  if (!state.xmlDoc) return;
+  const xml = getXmlString();
+  const a = Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(new Blob([xml], { type: 'application/xml' })),
+    download: state.fileName
+  });
+  a.click();
+  URL.revokeObjectURL(a.href);
+  document.getElementById('modified-badge').classList.add('d-none');
+}
+
+function renderAll() { renderFields(); renderWebLayout(); renderRaw(); }
+
+// ==================== RAW XML ====================
+
+function renderRaw() {
+  if (!state.xmlDoc) return;
+  document.getElementById('raw-xml').value = getXmlString();
+}
+
+function copyRaw() {
+  navigator.clipboard.writeText(document.getElementById('raw-xml').value).then(() => {
+    const btn = document.querySelector('[onclick="copyRaw()"]');
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = 'Copy to Clipboard'; }, 2000);
+  });
+}
+
+document.getElementById('tab-raw-btn').addEventListener('click', renderRaw);
+
+// ==================== FIELDS ====================
+
+function fieldsNode() { return state.xmlDoc?.querySelector('FIELDS'); }
+function isSysField(ref) { return ref.startsWith('System.') || ref.startsWith('Microsoft.VSTS.'); }
+
+const TYPE_COLORS = {
+  String: 'bg-info text-white', Integer: 'bg-success text-white',
+  Double: 'bg-success text-white', DateTime: 'bg-warning text-dark',
+  Boolean: 'bg-secondary text-white', HTML: 'bg-danger text-white',
+  PlainText: 'bg-dark text-white', History: 'bg-dark text-white',
+  TreePath: 'bg-secondary text-white'
+};
+
+function renderFields() {
+  const fn = fieldsNode();
+  const tbody = document.getElementById('fields-tbody');
+  if (!fn) { tbody.innerHTML = '<tr><td colspan="6" class="text-muted p-3">No FIELDS node found.</td></tr>'; return; }
+
+  const showSys = document.getElementById('show-system').checked;
+  const all = [...fn.querySelectorAll(':scope > FIELD')];
+  const rows = showSys ? all : all.filter(f => !isSysField(f.getAttribute('refname') || ''));
+
+  document.getElementById('field-count').textContent =
+    `${rows.length} field${rows.length !== 1 ? 's' : ''} shown` +
+    (showSys ? '' : ` (${all.length - rows.length} system hidden)`);
+
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-muted p-3">No fields to show.</td></tr>`; return;
+  }
+
+  tbody.innerHTML = rows.map(f => {
+    const ref = f.getAttribute('refname') || '';
+    const name = f.getAttribute('name') || '';
+    const type = f.getAttribute('type') || '';
+    const rep = f.getAttribute('reportable') || '';
+    const sys = isSysField(ref);
+    const tc = TYPE_COLORS[type] || 'bg-secondary text-white';
+    return `<tr class="${sys ? 'field-kind-system' : ''}">
+      <td class="small">${esc(name)}</td>
+      <td><code class="small">${esc(ref)}</code></td>
+      <td><span class="badge ${tc}" style="font-size:0.7em">${esc(type)}</span></td>
+      <td class="small text-muted">${esc(rep)}</td>
+      <td>${sys ? '<span class="badge bg-secondary" style="font-size:0.7em">System</span>' : '<span class="badge bg-primary" style="font-size:0.7em">Custom</span>'}</td>
+      <td>
+        <button class="btn btn-outline-secondary btn-sm btn-icon" data-action="edit-field" data-refname="${esc(ref)}">Edit</button>
+        ${!sys ? `<button class="btn btn-outline-danger btn-sm btn-icon ms-1" data-action="delete-field" data-refname="${esc(ref)}">Del</button>` : ''}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openFieldModal(refname) {
+  // Reset form
+  ['f-name','f-refname','f-helptext','f-allowedvalues','f-suggestedvalues','f-when-field','f-when-value','f-default-value','f-error']
+    .forEach(id => { const el = document.getElementById(id); el.tagName === 'SPAN' ? el.textContent = '' : el.value = ''; });
+  document.getElementById('f-type').value = 'String';
+  document.getElementById('f-reportable').value = '';
+  document.getElementById('f-syncnames').checked = false;
+  document.getElementById('f-required').checked = false;
+  document.getElementById('f-cannotlose').checked = false;
+  document.getElementById('f-default-from').value = '';
+  document.getElementById('f-default-value').classList.add('d-none');
+  document.getElementById('f-refname').disabled = false;
+  state._editingRefname = refname;
+
+  if (refname) {
+    document.getElementById('modal-field-title').textContent = 'Edit Field';
+    const fn = fieldsNode();
+    const fEl = [...fn.querySelectorAll(':scope > FIELD')].find(f => f.getAttribute('refname') === refname);
+    if (fEl) {
+      document.getElementById('f-name').value = fEl.getAttribute('name') || '';
+      document.getElementById('f-refname').value = refname;
+      document.getElementById('f-type').value = fEl.getAttribute('type') || 'String';
+      document.getElementById('f-reportable').value = fEl.getAttribute('reportable') || '';
+      document.getElementById('f-syncnames').checked = fEl.getAttribute('syncnamechanges') === 'true';
+      const ht = fEl.querySelector('HELPTEXT');
+      if (ht) document.getElementById('f-helptext').value = ht.textContent;
+      document.getElementById('f-required').checked = !!fEl.querySelector('REQUIRED');
+      document.getElementById('f-cannotlose').checked = !!fEl.querySelector('CANNOTLOSEVALUE');
+      const def = fEl.querySelector('DEFAULT');
+      if (def) {
+        const from = def.getAttribute('from') || '';
+        document.getElementById('f-default-from').value = from;
+        if (from === 'value') {
+          document.getElementById('f-default-value').value = def.getAttribute('value') || '';
+          document.getElementById('f-default-value').classList.remove('d-none');
+        }
+      }
+      const av = fEl.querySelector('ALLOWEDVALUES');
+      if (av) document.getElementById('f-allowedvalues').value =
+        [...av.querySelectorAll('LISTITEM')].map(li => li.getAttribute('value') || '').filter(Boolean).join('\n');
+      const sv = fEl.querySelector('SUGGESTEDVALUES');
+      if (sv) document.getElementById('f-suggestedvalues').value =
+        [...sv.querySelectorAll('LISTITEM')].map(li => li.getAttribute('value') || '').filter(Boolean).join('\n');
+      const when = fEl.querySelector('WHEN');
+      if (when) {
+        document.getElementById('f-when-field').value = when.getAttribute('field') || '';
+        document.getElementById('f-when-value').value = when.getAttribute('value') || '';
+      }
+      if (isSysField(refname)) document.getElementById('f-refname').disabled = true;
+    }
+  } else {
+    document.getElementById('modal-field-title').textContent = 'Add Field';
+  }
+  getModal('modal-field').show();
+}
+
+function toggleDefaultVal() {
+  const from = document.getElementById('f-default-from').value;
+  document.getElementById('f-default-value').classList.toggle('d-none', from !== 'value');
+}
+
+function saveField() {
+  const name = document.getElementById('f-name').value.trim();
+  const refname = document.getElementById('f-refname').disabled
+    ? state._editingRefname
+    : document.getElementById('f-refname').value.trim();
+  const errEl = document.getElementById('f-error');
+  errEl.textContent = '';
+
+  if (!name) { errEl.textContent = 'Name is required.'; return; }
+  if (!refname) { errEl.textContent = 'RefName is required.'; return; }
+  if (!/\w+\.\w+/.test(refname)) { errEl.textContent = 'RefName must contain a dot (e.g. OpSuite.MyField).'; return; }
+
+  const fn = fieldsNode();
+  const allFields = [...fn.querySelectorAll(':scope > FIELD')];
+
+  if (!state._editingRefname || state._editingRefname !== refname) {
+    if (allFields.find(f => f.getAttribute('refname') === refname)) {
+      errEl.textContent = `RefName "${refname}" already exists.`; return;
+    }
+  }
+
+  let fEl = state._editingRefname
+    ? allFields.find(f => f.getAttribute('refname') === state._editingRefname)
+    : null;
+  if (!fEl) { fEl = state.xmlDoc.createElement('FIELD'); fn.appendChild(fEl); }
+
+  fEl.setAttribute('name', name);
+  fEl.setAttribute('refname', refname);
+  fEl.setAttribute('type', document.getElementById('f-type').value);
+  const rep = document.getElementById('f-reportable').value;
+  if (rep) fEl.setAttribute('reportable', rep); else fEl.removeAttribute('reportable');
+  if (document.getElementById('f-syncnames').checked) fEl.setAttribute('syncnamechanges', 'true');
+  else fEl.removeAttribute('syncnamechanges');
+
+  // Clear children
+  while (fEl.firstChild) fEl.removeChild(fEl.firstChild);
+
+  const mk = (tag) => state.xmlDoc.createElement(tag);
+
+  const helptext = document.getElementById('f-helptext').value.trim();
+  if (helptext) { const h = mk('HELPTEXT'); h.textContent = helptext; fEl.appendChild(h); }
+
+  if (document.getElementById('f-required').checked) fEl.appendChild(mk('REQUIRED'));
+  if (document.getElementById('f-cannotlose').checked) fEl.appendChild(mk('CANNOTLOSEVALUE'));
+
+  const defFrom = document.getElementById('f-default-from').value;
+  if (defFrom) {
+    const d = mk('DEFAULT'); d.setAttribute('from', defFrom);
+    if (defFrom === 'value') d.setAttribute('value', document.getElementById('f-default-value').value.trim());
+    fEl.appendChild(d);
+  }
+
+  const appendListEl = (tag, text) => {
+    const vals = text.split('\n').map(v => v.trim()).filter(Boolean);
+    if (!vals.length) return;
+    const el = mk(tag); el.setAttribute('expanditems', 'true');
+    vals.forEach(v => { const li = mk('LISTITEM'); li.setAttribute('value', v); el.appendChild(li); });
+    fEl.appendChild(el);
+  };
+  appendListEl('ALLOWEDVALUES', document.getElementById('f-allowedvalues').value);
+  appendListEl('SUGGESTEDVALUES', document.getElementById('f-suggestedvalues').value);
+
+  const wf = document.getElementById('f-when-field').value.trim();
+  const wv = document.getElementById('f-when-value').value.trim();
+  if (wf && wv) {
+    const w = mk('WHEN'); w.setAttribute('field', wf); w.setAttribute('value', wv);
+    w.appendChild(mk('REQUIRED')); fEl.appendChild(w);
+  }
+
+  hideModal('modal-field');
+  markModified();
+  renderAll();
+}
+
+function deleteField(refname) {
+  if (!confirm(`Delete field "${refname}"?\n\nNote: any WebLayout controls bound to this field will reference a missing field.`)) return;
+  const fn = fieldsNode();
+  [...fn.querySelectorAll(':scope > FIELD')].find(f => f.getAttribute('refname') === refname)?.remove();
+  markModified();
+  renderAll();
+}
+
+// ==================== WEBLAYOUT ====================
+
+function wlNode() { return state.xmlDoc?.querySelector('WebLayout'); }
+function getPages() { const w = wlNode(); return w ? [...w.querySelectorAll(':scope > Page')] : []; }
+
+function renderWebLayout() {
+  if (!state.xmlDoc) return;
+  const wl = wlNode();
+  if (!wl) {
+    document.getElementById('page-canvas').innerHTML = '<p class="text-muted">No WebLayout node found in this XML file.</p>';
+    document.getElementById('page-buttons').innerHTML = '';
+    return;
+  }
+  renderPageButtons();
+  renderPageCanvas();
+}
+
+function renderPageButtons() {
+  const pages = getPages();
+  document.getElementById('page-buttons').innerHTML = pages.map((p, i) => {
+    const label = p.getAttribute('Label') || `Page ${i+1}`;
+    const active = i === state.currentPageIndex;
+    return `<div class="btn-group btn-group-sm">
+      <button class="btn btn-${active?'primary':'outline-primary'}" data-action="select-page" data-index="${i}">${esc(label)}</button>
+      <button class="btn btn-${active?'primary':'outline-primary'} dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"><span class="visually-hidden">Menu</span></button>
+      <ul class="dropdown-menu">
+        <li><a class="dropdown-item" href="#" data-action="rename-page" data-index="${i}">Rename / Layout</a></li>
+        <li><a class="dropdown-item text-danger" href="#" data-action="delete-page" data-index="${i}">Delete Page</a></li>
+      </ul>
+    </div>`;
+  }).join('');
+}
+
+function renderPageCanvas() {
+  const pages = getPages();
+  const canvas = document.getElementById('page-canvas');
+  if (!pages.length) {
+    canvas.innerHTML = '<p class="text-muted small">No pages. Click "+ Add Page" to create one.</p>'; return;
+  }
+  if (state.currentPageIndex >= pages.length) state.currentPageIndex = 0;
+  const page = pages[state.currentPageIndex];
+  const pi = state.currentPageIndex;
+  const sections = [...page.querySelectorAll(':scope > Section')];
+
+  let html = `<div class="mb-2">
+    <button class="btn btn-outline-secondary btn-sm" data-action="add-section" data-page="${pi}">+ Add Section</button>
+    <span class="small text-muted ms-2">${sections.length} section${sections.length !== 1 ? 's' : ''}</span>
+  </div>
+  <div class="row g-2">`;
+
+  if (!sections.length) {
+    html += `<div class="col"><div class="empty-section">No sections. Add one above.</div></div>`;
+  }
+
+  sections.forEach((sec, si) => {
+    const groups = [...sec.querySelectorAll(':scope > Group')];
+    html += `<div class="col-md">
+      <div class="section-card">
+        <div class="d-flex align-items-center mb-2">
+          <span class="small text-muted fw-semibold">Section ${si+1}</span>
+          <div class="ms-auto d-flex gap-1">
+            <button class="btn btn-outline-primary btn-sm btn-icon" data-action="add-group" data-page="${pi}" data-section="${si}">+ Group</button>
+            <button class="btn btn-outline-danger btn-sm btn-icon" data-action="delete-section" data-page="${pi}" data-section="${si}">&#10005;</button>
+          </div>
+        </div>`;
+
+    if (!groups.length) {
+      html += `<div class="empty-section">No groups</div>`;
+    }
+
+    groups.forEach((grp, gi) => {
+      const grpLabel = grp.getAttribute('Label') || '(no label)';
+      const controls = [...grp.querySelectorAll(':scope > Control')];
+      html += `<div class="group-card mb-2">
+        <div class="group-header">
+          <span class="small fw-semibold text-primary" style="flex:1">${esc(grpLabel)}</span>
+          <button class="btn btn-outline-secondary btn-sm btn-icon me-1" data-action="rename-group" data-page="${pi}" data-section="${si}" data-group="${gi}">&#9998;</button>
+          <button class="btn btn-outline-primary btn-sm btn-icon me-1" data-action="add-control" data-page="${pi}" data-section="${si}" data-group="${gi}">+</button>
+          <button class="btn btn-outline-danger btn-sm btn-icon" data-action="delete-group" data-page="${pi}" data-section="${si}" data-group="${gi}">&#10005;</button>
+        </div>`;
+
+      if (!controls.length) {
+        html += `<div class="px-2 py-1 text-muted" style="font-size:0.78rem">No controls</div>`;
+      }
+
+      controls.forEach((ctrl, ci) => {
+        const lbl = ctrl.getAttribute('Label') || '';
+        const type = ctrl.getAttribute('Type') || '';
+        const field = ctrl.getAttribute('FieldName') || ctrl.getAttribute('Name') || '';
+        const ro = ctrl.getAttribute('ReadOnly') === 'True';
+        html += `<div class="control-row">
+          <div class="control-info">
+            <span>${esc(lbl)}${ro ? ' <span class="badge bg-warning text-dark" style="font-size:0.62em">RO</span>' : ''}</span>
+            <br><span class="text-muted" style="font-size:0.75em">${esc(type)}${field ? ' &middot; <code>' + esc(field) + '</code>' : ''}</span>
+          </div>
+          <div class="control-actions">
+            <button class="btn btn-outline-secondary btn-sm btn-icon" data-action="move-up" data-page="${pi}" data-section="${si}" data-group="${gi}" data-control="${ci}" ${ci===0?'disabled':''}>&#8593;</button>
+            <button class="btn btn-outline-secondary btn-sm btn-icon" data-action="move-down" data-page="${pi}" data-section="${si}" data-group="${gi}" data-control="${ci}" ${ci===controls.length-1?'disabled':''}>&#8595;</button>
+            <button class="btn btn-outline-secondary btn-sm btn-icon" data-action="edit-control" data-page="${pi}" data-section="${si}" data-group="${gi}" data-control="${ci}">&#9998;</button>
+            <button class="btn btn-outline-danger btn-sm btn-icon" data-action="delete-control" data-page="${pi}" data-section="${si}" data-group="${gi}" data-control="${ci}">&#10005;</button>
+          </div>
+        </div>`;
+      });
+
+      html += `</div>`; // group-card
+    });
+
+    html += `</div></div>`; // section-card + col
+  });
+
+  html += `</div>`;
+  canvas.innerHTML = html;
+}
+
+// PAGE CRUD
+
+function openPageModal(index) {
+  document.getElementById('p-index').value = index;
+  document.getElementById('p-error').textContent = '';
+  if (index >= 0) {
+    const p = getPages()[index];
+    document.getElementById('modal-page-title').textContent = 'Edit Page';
+    document.getElementById('p-label').value = p?.getAttribute('Label') || '';
+    document.getElementById('p-layoutmode').value = p?.getAttribute('LayoutMode') || 'FirstColumnWide';
+  } else {
+    document.getElementById('modal-page-title').textContent = 'Add Page';
+    document.getElementById('p-label').value = '';
+    document.getElementById('p-layoutmode').value = 'FirstColumnWide';
+  }
+  getModal('modal-page').show();
+}
+
+function savePage() {
+  const label = document.getElementById('p-label').value.trim();
+  const layoutMode = document.getElementById('p-layoutmode').value;
+  const index = parseInt(document.getElementById('p-index').value);
+  if (!label) { document.getElementById('p-error').textContent = 'Label is required.'; return; }
+
+  const wl = wlNode();
+  const pages = getPages();
+  if (index >= 0) {
+    pages[index].setAttribute('Label', label);
+    pages[index].setAttribute('LayoutMode', layoutMode);
+  } else {
+    const pg = state.xmlDoc.createElement('Page');
+    pg.setAttribute('Label', label);
+    pg.setAttribute('LayoutMode', layoutMode);
+    pg.appendChild(state.xmlDoc.createElement('Section'));
+    wl.appendChild(pg);
+    state.currentPageIndex = getPages().length - 1;
+  }
+  hideModal('modal-page');
+  markModified();
+  renderWebLayout();
+  renderRaw();
+}
+
+function deletePage(index) {
+  const label = getPages()[index]?.getAttribute('Label') || `Page ${index+1}`;
+  if (!confirm(`Delete page "${label}" and all its content?`)) return;
+  getPages()[index]?.remove();
+  if (state.currentPageIndex >= getPages().length) state.currentPageIndex = Math.max(0, getPages().length - 1);
+  markModified();
+  renderWebLayout();
+  renderRaw();
+}
+
+// SECTION CRUD
+
+function addSection(pi) {
+  const page = getPages()[pi];
+  if (!page) return;
+  page.appendChild(state.xmlDoc.createElement('Section'));
+  markModified(); renderWebLayout(); renderRaw();
+}
+
+function deleteSection(pi, si) {
+  if (!confirm('Delete this section and all its groups and controls?')) return;
+  const page = getPages()[pi];
+  [...page.querySelectorAll(':scope > Section')][si]?.remove();
+  markModified(); renderWebLayout(); renderRaw();
+}
+
+// GROUP CRUD
+
+function openGroupModal(pi, si, gi) {
+  document.getElementById('g-page').value = pi;
+  document.getElementById('g-section').value = si;
+  document.getElementById('g-group').value = gi ?? -1;
+  document.getElementById('g-label').value = '';
+  if (gi !== undefined && gi >= 0) {
+    document.getElementById('modal-group-title').textContent = 'Rename Group';
+    const section = [...getPages()[pi].querySelectorAll(':scope > Section')][si];
+    const grp = [...section.querySelectorAll(':scope > Group')][gi];
+    document.getElementById('g-label').value = grp?.getAttribute('Label') || '';
+  } else {
+    document.getElementById('modal-group-title').textContent = 'Add Group';
+  }
+  getModal('modal-group').show();
+}
+
+function saveGroup() {
+  const label = document.getElementById('g-label').value.trim();
+  const pi = parseInt(document.getElementById('g-page').value);
+  const si = parseInt(document.getElementById('g-section').value);
+  const gi = parseInt(document.getElementById('g-group').value);
+  const section = [...getPages()[pi].querySelectorAll(':scope > Section')][si];
+
+  if (gi < 0) {
+    const grp = state.xmlDoc.createElement('Group');
+    if (label) grp.setAttribute('Label', label);
+    section.appendChild(grp);
+  } else {
+    const grp = [...section.querySelectorAll(':scope > Group')][gi];
+    if (grp) { if (label) grp.setAttribute('Label', label); else grp.removeAttribute('Label'); }
+  }
+  hideModal('modal-group');
+  markModified(); renderWebLayout(); renderRaw();
+}
+
+function deleteGroup(pi, si, gi) {
+  if (!confirm('Delete this group and all its controls?')) return;
+  const section = [...getPages()[pi].querySelectorAll(':scope > Section')][si];
+  [...section.querySelectorAll(':scope > Group')][gi]?.remove();
+  markModified(); renderWebLayout(); renderRaw();
+}
+
+// CONTROL CRUD
+
+function getFieldRefnames() {
+  const fn = fieldsNode();
+  return fn ? [...fn.querySelectorAll(':scope > FIELD')].map(f => f.getAttribute('refname')).filter(Boolean) : [];
+}
+
+const NO_FIELD_TYPES = ['LinksControl', 'AttachmentsControl'];
+
+function openControlModal(pi, si, gi, ci) {
+  document.getElementById('c-page').value = pi;
+  document.getElementById('c-section').value = si;
+  document.getElementById('c-group').value = gi;
+  document.getElementById('c-control').value = ci ?? -1;
+  document.getElementById('c-label').value = '';
+  document.getElementById('c-type').value = 'FieldControl';
+  document.getElementById('c-name').value = '';
+  document.getElementById('c-readonly').checked = false;
+  document.getElementById('c-error').textContent = '';
+
+  // Populate field dropdown
+  const sel = document.getElementById('c-fieldname');
+  const refs = getFieldRefnames();
+  sel.innerHTML = '<option value="">(select a field)</option>' +
+    refs.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join('');
+
+  if (ci !== undefined && ci >= 0) {
+    document.getElementById('modal-ctrl-title').textContent = 'Edit Control';
+    const section = [...getPages()[pi].querySelectorAll(':scope > Section')][si];
+    const grp = [...section.querySelectorAll(':scope > Group')][gi];
+    const ctrl = [...grp.querySelectorAll(':scope > Control')][ci];
+    if (ctrl) {
+      document.getElementById('c-label').value = ctrl.getAttribute('Label') || '';
+      document.getElementById('c-type').value = ctrl.getAttribute('Type') || 'FieldControl';
+      sel.value = ctrl.getAttribute('FieldName') || '';
+      document.getElementById('c-name').value = ctrl.getAttribute('Name') || '';
+      document.getElementById('c-readonly').checked = ctrl.getAttribute('ReadOnly') === 'True';
+    }
+  } else {
+    document.getElementById('modal-ctrl-title').textContent = 'Add Control';
+  }
+  updateCtrlVisibility();
+  getModal('modal-control').show();
+}
+
+function updateCtrlVisibility() {
+  const type = document.getElementById('c-type').value;
+  const needsField = !NO_FIELD_TYPES.includes(type);
+  document.getElementById('c-fieldname-row').classList.toggle('d-none', !needsField);
+  document.getElementById('c-name-row').classList.toggle('d-none', needsField);
+}
+
+function saveControl() {
+  const label = document.getElementById('c-label').value.trim();
+  const type = document.getElementById('c-type').value;
+  const fieldname = document.getElementById('c-fieldname').value;
+  const name = document.getElementById('c-name').value.trim();
+  const readonly = document.getElementById('c-readonly').checked;
+  const errEl = document.getElementById('c-error');
+  errEl.textContent = '';
+
+  const needsField = !NO_FIELD_TYPES.includes(type);
+  if (needsField && !fieldname) { errEl.textContent = 'Please select a field.'; return; }
+
+  const pi = parseInt(document.getElementById('c-page').value);
+  const si = parseInt(document.getElementById('c-section').value);
+  const gi = parseInt(document.getElementById('c-group').value);
+  const ci = parseInt(document.getElementById('c-control').value);
+
+  const section = [...getPages()[pi].querySelectorAll(':scope > Section')][si];
+  const grp = [...section.querySelectorAll(':scope > Group')][gi];
+
+  let ctrl = ci >= 0 ? [...grp.querySelectorAll(':scope > Control')][ci] : null;
+  if (!ctrl) { ctrl = state.xmlDoc.createElement('Control'); grp.appendChild(ctrl); }
+
+  if (label) ctrl.setAttribute('Label', label); else ctrl.removeAttribute('Label');
+  ctrl.setAttribute('Type', type);
+  if (needsField) { ctrl.setAttribute('FieldName', fieldname); ctrl.removeAttribute('Name'); }
+  else { if (name) ctrl.setAttribute('Name', name); else ctrl.removeAttribute('Name'); ctrl.removeAttribute('FieldName'); }
+  if (readonly) ctrl.setAttribute('ReadOnly', 'True'); else ctrl.removeAttribute('ReadOnly');
+
+  hideModal('modal-control');
+  markModified(); renderWebLayout(); renderRaw();
+}
+
+function deleteControl(pi, si, gi, ci) {
+  const section = [...getPages()[pi].querySelectorAll(':scope > Section')][si];
+  const grp = [...section.querySelectorAll(':scope > Group')][gi];
+  [...grp.querySelectorAll(':scope > Control')][ci]?.remove();
+  markModified(); renderWebLayout(); renderRaw();
+}
+
+function moveControl(pi, si, gi, ci, dir) {
+  const section = [...getPages()[pi].querySelectorAll(':scope > Section')][si];
+  const grp = [...section.querySelectorAll(':scope > Group')][gi];
+  const ctrls = [...grp.querySelectorAll(':scope > Control')];
+  const ctrl = ctrls[ci];
+  if (!ctrl) return;
+  if (dir === 'up' && ci > 0) grp.insertBefore(ctrl, ctrls[ci - 1]);
+  else if (dir === 'down' && ci < ctrls.length - 1) grp.insertBefore(ctrls[ci + 1], ctrl);
+  markModified(); renderWebLayout(); renderRaw();
+}
+
+// ==================== EVENT DELEGATION ====================
+
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  if (btn.tagName === 'A') e.preventDefault();
+
+  const a = btn.dataset.action;
+  const pi = parseInt(btn.dataset.page ?? btn.dataset.index ?? '0') || 0;
+  const si = parseInt(btn.dataset.section ?? '0') || 0;
+  const gi = parseInt(btn.dataset.group ?? '0') || 0;
+  const ci = parseInt(btn.dataset.control ?? '0') || 0;
+
+  switch (a) {
+    case 'edit-field':    openFieldModal(btn.dataset.refname); break;
+    case 'delete-field':  deleteField(btn.dataset.refname); break;
+    case 'select-page':   state.currentPageIndex = parseInt(btn.dataset.index); renderWebLayout(); break;
+    case 'rename-page':   openPageModal(parseInt(btn.dataset.index)); break;
+    case 'delete-page':   deletePage(parseInt(btn.dataset.index)); break;
+    case 'add-section':   addSection(pi); break;
+    case 'delete-section':deleteSection(pi, si); break;
+    case 'add-group':     openGroupModal(pi, si, undefined); break;
+    case 'rename-group':  openGroupModal(pi, si, gi); break;
+    case 'delete-group':  deleteGroup(pi, si, gi); break;
+    case 'add-control':   openControlModal(pi, si, gi, undefined); break;
+    case 'edit-control':  openControlModal(pi, si, gi, ci); break;
+    case 'delete-control':deleteControl(pi, si, gi, ci); break;
+    case 'move-up':       moveControl(pi, si, gi, ci, 'up'); break;
+    case 'move-down':     moveControl(pi, si, gi, ci, 'down'); break;
+  }
+});
+</script>
+</body>
+</html>
